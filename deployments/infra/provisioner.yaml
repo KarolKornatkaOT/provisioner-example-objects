@@ -1,0 +1,80 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prov
+  namespace: infra
+spec:
+  replicas: 1
+  strategy:
+      rollingUpdate:
+        maxUnavailable: 0
+        maxSurge: 1
+  template:
+    metadata:
+      labels:
+        run: prov
+    spec:
+      containers:
+      - name: git-sync
+        image: lukaszbielinski/git-sync:0.7
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: markdown
+          mountPath: /git
+        - name: secr
+          mountPath: /root/.ssh/klucze
+        env:
+        - name: GIT_SYNC_REPO
+          value: ssh://git@github.com:lukasz-bielinski/provisioner-example-objects.git
+        - name: GIT_SYNC_WAIT
+          value: "35"
+        - name: GIT_SYNC_DEST
+          value: /git
+
+      - name: prov-deployments
+        image: lukaszbielinski/kubectl-image:0.28-kubectl-lock
+        env:
+        - name: PROV_TYPE
+          value: generic
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: markdown
+          mountPath: /src
+
+      - name: prov-secrets
+        image: lukaszbielinski/kubectl-image:0.28-kubectl-lock
+        imagePullPolicy: Always
+        env:
+        - name: PROV_TYPE
+          value: secrets
+        volumeMounts:
+        - name: markdown
+          mountPath: /src
+
+      - name: prov-configmap
+        image: lukaszbielinski/kubectl-image:0.28-kubectl-lock
+        imagePullPolicy: Always
+        env:
+        - name: PROV_TYPE
+          value: configmap
+        volumeMounts:
+        - name: markdown
+          mountPath: /srcconfigmap
+
+      - name: prov-ns
+        image: lukaszbielinski/kubectl-image:0.28-kubectl-lock
+        imagePullPolicy: Always
+        env:
+        - name: PROV_TYPE
+          value: quota
+        volumeMounts:
+        - name: markdown
+          mountPath: /src
+
+
+      volumes:
+      - name: markdown
+        emptyDir: {}
+      - name: secr
+        secret:
+          secretName: bb
