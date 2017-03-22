@@ -25,7 +25,7 @@ spec:
           mountPath: /root/.ssh/klucze
         env:
         - name: GIT_SYNC_REPO
-          value: ssh://git@github.com:lukasz-bielinski/provisioner-example-objects.git
+          value: git@github.com:lukasz-bielinski/provisioner-example-objects.git
         - name: GIT_SYNC_WAIT
           value: "35"
         - name: GIT_SYNC_DEST
